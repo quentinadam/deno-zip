@@ -1,0 +1,22 @@
+{
+  "name": "@quentinadam/zip",
+  "version": "0.1.0",
+  "exports": "./zip.ts",
+  "imports": {
+    "@quentinadam/assert": "jsr:@quentinadam/assert@^0.1.6",
+    "@quentinadam/uint8array-extension": "jsr:@quentinadam/uint8array-extension@^0.1.3"
+  },
+  "publish": {
+    "exclude": [
+      ".github/",
+      ".vscode/"
+    ]
+  },
+  "fmt": {
+    "singleQuote": true,
+    "lineWidth": 120
+  },
+  "tasks": {
+    "check": "deno check **/*.ts"
+  }
+}
