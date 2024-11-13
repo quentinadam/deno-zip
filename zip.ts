@@ -390,9 +390,9 @@ export async function create(
         return { data: file.data, compressed: false };
       }
     })();
-    const { lastModificationDate, lastModificationTime } = file.lastModification !== undefined
-      ? serializeLastModification(file.lastModification)
-      : { lastModificationDate: 0, lastModificationTime: 0 };
+    const { lastModificationDate, lastModificationTime } = serializeLastModification(
+      file.lastModification ?? new Date(),
+    );
     const entry = {
       version: 45,
       requiredVersion: 20,
