@@ -163,20 +163,44 @@ class Reader {
     };
   }
 
-  readFileEntry(): FileEntry {
+  readFileEntry(directoryEntry: DirectoryEntry): FileEntry {
+    this.seek(directoryEntry.offset);
     assert(this.readUint32LE() === FILE_ENTRY_SIGNATURE);
     const requiredVersion = this.readUint16LE();
+    assert(requiredVersion === directoryEntry.requiredVersion);
     const flag = this.readUint16LE();
+    assert(flag === directoryEntry.flag);
     const compressionMethod = this.readUint16LE();
+    assert(compressionMethod === directoryEntry.compressionMethod);
     const lastModificationTime = this.readUint16LE();
+    assert(lastModificationTime === directoryEntry.lastModificationTime);
     const lastModificationDate = this.readUint16LE();
-    const crc32 = this.readUint32LE();
-    const compressedSize = this.readUint32LE();
-    const uncompressedSize = this.readUint32LE();
+    assert(lastModificationDate === directoryEntry.lastModificationDate);
+
+    let crc32 = this.readUint32LE();
+    if (crc32 !== 0) {
+      assert(crc32 === directoryEntry.crc32);
+    } else {
+      crc32 = directoryEntry.crc32;
+    }
+    let compressedSize = this.readUint32LE();
+    if (compressedSize !== 0) {
+      assert(compressedSize === directoryEntry.compressedSize);
+    } else {
+      compressedSize = directoryEntry.compressedSize;
+    }
+    let uncompressedSize = this.readUint32LE();
+    if (uncompressedSize !== 0) {
+      assert(uncompressedSize === directoryEntry.uncompressedSize);
+    } else {
+      uncompressedSize = directoryEntry.uncompressedSize;
+    }
     const nameLength = this.readUint16LE();
     const extraFieldLength = this.readUint16LE();
     const name = new TextDecoder().decode(this.readBuffer(nameLength));
+    assert(name === directoryEntry.name);
     const extraField = this.readBuffer(extraFieldLength);
+    assert(new Uint8ArrayExtension(extraField).equals(directoryEntry.extraField));
     const data = this.readBuffer(compressedSize);
     return {
       requiredVersion,
@@ -277,12 +301,40 @@ class Writer {
   }
 }
 
+function deserializeLastModification({ lastModificationDate, lastModificationTime }: {
+  lastModificationDate: number;
+  lastModificationTime: number;
+}) {
+  const year = ((lastModificationDate >> 9) & 0x7f) + 1980;
+  const month = (lastModificationDate >> 5) & 0xf;
+  const day = lastModificationDate & 0x1f;
+  const hour = (lastModificationTime >> 11) & 0x1f;
+  const minute = (lastModificationTime >> 5) & 0x3f;
+  const second = (lastModificationTime & 0x1f) * 2;
+  return new Date(year, month - 1, day, hour, minute, second);
+}
+
+function serializeLastModification(date: Date) {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  const second = date.getSeconds();
+  return {
+    lastModificationDate: ((year - 1980) << 9) | (month << 5) | day,
+    lastModificationTime: (hour << 11) | (minute << 5) | (second / 2),
+  };
+}
+
 /**
  * Extracts files from a ZIP archive.
  * @param buffer An Uint8Array containing the ZIP archive.
  * @returns A list of files extracted from the ZIP archive.
  */
-export async function extract(buffer: Uint8Array): Promise<{ name: string; data: Uint8Array }[]> {
+export async function extract(
+  buffer: Uint8Array,
+): Promise<{ name: string; data: Uint8Array; lastModification: Date }[]> {
   const reader = new Reader(buffer);
   reader.locateDirectory();
   const directory = reader.readDirectory();
@@ -296,16 +348,9 @@ export async function extract(buffer: Uint8Array): Promise<{ name: string; data:
     assert(directoryEntry.diskNumber === 0);
     directoryEntries.push(directoryEntry);
   }
-  const files = new Array<{ name: string; data: Uint8Array }>();
+  const files = new Array<{ name: string; data: Uint8Array; lastModification: Date }>();
   for (const directoryEntry of directoryEntries) {
-    reader.seek(directoryEntry.offset);
-    const fileEntry = reader.readFileEntry();
-    assert(fileEntry.flag === directoryEntry.flag);
-    assert(fileEntry.compressionMethod === directoryEntry.compressionMethod);
-    assert(fileEntry.crc32 === directoryEntry.crc32);
-    assert(fileEntry.compressedSize === directoryEntry.compressedSize);
-    assert(fileEntry.uncompressedSize === directoryEntry.uncompressedSize);
-    assert(fileEntry.name === directoryEntry.name);
+    const fileEntry = reader.readFileEntry(directoryEntry);
     const data = await (async () => {
       if (fileEntry.compressionMethod === 0) {
         return fileEntry.data;
@@ -315,9 +360,13 @@ export async function extract(buffer: Uint8Array): Promise<{ name: string; data:
       }
       throw new Error(`Unsupported compression method ${fileEntry.compressionMethod}`);
     })();
+    const lastModification = deserializeLastModification({
+      lastModificationDate: fileEntry.lastModificationDate,
+      lastModificationTime: fileEntry.lastModificationTime,
+    });
     assert(fileEntry.uncompressedSize === data.length);
     assert(crc32(data) === fileEntry.crc32);
-    files.push({ name: fileEntry.name, data });
+    files.push({ name: fileEntry.name, data, lastModification });
   }
   return files;
 }
@@ -327,7 +376,9 @@ export async function extract(buffer: Uint8Array): Promise<{ name: string; data:
  * @param files List of files to include in the archive.
  * @returns An Uint8Array containing the ZIP archive.
  */
-export async function create(files: { name: string; data: Uint8Array }[]): Promise<Uint8Array> {
+export async function create(
+  files: { name: string; data: Uint8Array; lastModification?: Date }[],
+): Promise<Uint8Array> {
   const writer = new Writer();
   const entries = new Array<DirectoryEntry & { data: Uint8Array }>();
   for (const file of files) {
@@ -339,13 +390,16 @@ export async function create(files: { name: string; data: Uint8Array }[]): Promi
         return { data: file.data, compressed: false };
       }
     })();
+    const { lastModificationDate, lastModificationTime } = file.lastModification !== undefined
+      ? serializeLastModification(file.lastModification)
+      : { lastModificationDate: 0, lastModificationTime: 0 };
     const entry = {
       version: 45,
       requiredVersion: 20,
       flag: 6,
       compressionMethod: compressed ? 8 : 0,
-      lastModificationTime: 0,
-      lastModificationDate: 0,
+      lastModificationTime,
+      lastModificationDate,
       crc32: crc32(file.data),
       compressedSize: data.length,
       uncompressedSize: file.data.length,
