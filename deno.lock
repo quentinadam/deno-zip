@@ -1,0 +1,39 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@quentinadam/assert@~0.1.10": "0.1.10",
+    "jsr:@quentinadam/require@~0.1.4": "0.1.4",
+    "jsr:@quentinadam/uint8array-extension@~0.1.5": "0.1.5",
+    "npm:typescript@^5.7.2": "5.7.2"
+  },
+  "jsr": {
+    "@quentinadam/assert@0.1.10": {
+      "integrity": "623eb01c4eb8bbe6420abcbc06792dbd5ca4301c270ac04b3745deac099f70df"
+    },
+    "@quentinadam/require@0.1.4": {
+      "integrity": "ef2a475d3fc241817470e540bd892ac23520d620ffb23b7796c940df31391c72",
+      "dependencies": [
+        "jsr:@quentinadam/assert"
+      ]
+    },
+    "@quentinadam/uint8array-extension@0.1.5": {
+      "integrity": "d7ccf8c8841947c7410c2db3249eb88a77bc1677b2a1c945971b8ead57e725b4",
+      "dependencies": [
+        "jsr:@quentinadam/assert"
+      ]
+    }
+  },
+  "npm": {
+    "typescript@5.7.2": {
+      "integrity": "sha512-i5t66RHxDvVN40HfDd1PsEThGNnlMCMT3jMUuoh9/0TaqWevNontacunWyN02LA9/fIbEWlcHZcgTKb9QoaLfg=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@quentinadam/assert@~0.1.10",
+      "jsr:@quentinadam/require@~0.1.4",
+      "jsr:@quentinadam/uint8array-extension@~0.1.5",
+      "npm:typescript@^5.7.2"
+    ]
+  }
+}

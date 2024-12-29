@@ -1,5 +1,5 @@
-import Uint8ArrayExtension from '@quentinadam/uint8array-extension';
 import assert from '@quentinadam/assert';
+import Uint8ArrayExtension from '@quentinadam/uint8array-extension';
 import crc32 from './crc32.ts';
 import { compress, decompress } from './deflate.ts';
 

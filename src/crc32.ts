@@ -1,3 +1,5 @@
+import require from '@quentinadam/require';
+
 const POLYNOMIAL = -306674912;
 
 const TABLE = /* @__PURE__ */ (() => {
@@ -13,8 +15,8 @@ const TABLE = /* @__PURE__ */ (() => {
 })();
 
 export default function crc32(buffer: Uint8Array, crc = 0xFFFFFFFF) {
-  for (let i = 0; i < buffer.length; ++i) {
-    crc = TABLE[(crc ^ buffer[i]) & 0xff] ^ (crc >>> 8);
+  for (const byte of buffer) {
+    crc = require(TABLE[(crc ^ byte) & 0xff]) ^ (crc >>> 8);
   }
   return (crc ^ -1) >>> 0;
 }

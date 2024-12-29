@@ -1,1 +1,5 @@
-deno.lock
+dist
+jsr.json
+package.json
+node_modules
+tsconfig.tsbuildinfo

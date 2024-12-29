@@ -1,0 +1,50 @@
+name: Publish
+on:
+  release:
+    types: [published]
+jobs:
+  publish-jsr:
+    name: Publish to JSR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Generate jsr.json
+        run: deno run --allow-read=. --allow-run=deno scripts/generate-package-manifest.ts --type=jsr | tee jsr.json
+      - name: Publish to JSR
+        run: deno publish --config=jsr.json
+  publish-npm:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Generate package.json
+        run: deno run --allow-read=. --allow-run=deno scripts/generate-package-manifest.ts --type=npm | tee package.json
+      - name: Install dependencies
+        run: deno install
+      - name: Build
+        run: deno task --eval "tsc -b"
+      - name: Publish to NPM
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
