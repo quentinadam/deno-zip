@@ -1,0 +1,26 @@
+name: Publish to JSR
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+  publish:
+    name: Publish to JSR
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Generate jsr.json
+        run: deno run --allow-all scripts/generate-package-manifest.ts --type=jsr | tee jsr.json
+      - name: Publish to JSR
+        run: deno publish --config=jsr.json

@@ -1,27 +1,14 @@
-name: Publish
+name: Publish to NPM
 on:
+  workflow_dispatch:
   release:
     types: [published]
 jobs:
-  publish-jsr:
-    name: Publish to JSR
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-      - name: Generate jsr.json
-        run: deno run --allow-read=. --allow-run=deno scripts/generate-package-manifest.ts --type=jsr | tee jsr.json
-      - name: Publish to JSR
-        run: deno publish --config=jsr.json
-  publish-npm:
+  ci:
+    uses: ./.github/workflows/ci.yml
+  publish:
     name: Publish to NPM
+    needs: ci
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -39,7 +26,7 @@ jobs:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
       - name: Generate package.json
-        run: deno run --allow-read=. --allow-run=deno scripts/generate-package-manifest.ts --type=npm | tee package.json
+        run: deno run --allow-all scripts/generate-package-manifest.ts --type=npm | tee package.json
       - name: Install dependencies
         run: deno install
       - name: Build

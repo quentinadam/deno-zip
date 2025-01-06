@@ -91,6 +91,8 @@ type ConfigurationFile = {
   version: string;
   description: string;
   license: string;
+  author?: string;
+  repository?: unknown;
   exports?: string | Record<string, string>;
   imports?: Record<string, string>;
 };
@@ -107,13 +109,10 @@ const configurationFile: ConfigurationFile = JSON.parse(Deno.readTextFileSync('d
 
 const dependencies = await getExportsDependencies();
 
-const scopedName = require(configurationFile.name);
-const name = require(scopedName.split('/')[1]);
-
 const manifest = (() => {
   if (type === 'jsr') {
     return {
-      name: scopedName,
+      name: require(configurationFile.name),
       version: require(configurationFile.version),
       license: require(configurationFile.license),
       exports: require(configurationFile.exports),
@@ -127,12 +126,12 @@ const manifest = (() => {
   }
   if (type === 'npm') {
     return {
-      name: scopedName,
+      name: require(configurationFile.name),
       version: require(configurationFile.version),
       description: require(configurationFile.description),
       license: require(configurationFile.license),
-      author: 'Quentin Adam',
-      repository: { type: 'git', url: `git+https://github.com/quentinadam/deno-${name}.git` },
+      author: configurationFile.author,
+      repository: configurationFile.repository,
       type: 'module',
       exports: ((exports) => {
         const replaceFn = (path: string) => path.replace(/^\.\/src\//, './dist/').replace(/\.ts$/, '.js');

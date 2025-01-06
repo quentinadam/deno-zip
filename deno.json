@@ -3,6 +3,11 @@
   "version": "0.1.4",
   "description": "A library for creating and extracting ZIP archives",
   "license": "MIT",
+  "author": "Quentin Adam",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quentinadam/deno-zip.git"
+  },
   "exports": "./src/zip.ts",
   "imports": {
     "@quentinadam/assert": "jsr:@quentinadam/assert@^0.1.10",
