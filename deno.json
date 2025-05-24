@@ -1,6 +1,6 @@
 {
   "name": "@quentinadam/zip",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A library for creating and extracting ZIP archives",
   "license": "MIT",
   "author": "Quentin Adam",
