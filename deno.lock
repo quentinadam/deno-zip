@@ -1,39 +1,40 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
-    "jsr:@quentinadam/assert@~0.1.10": "0.1.10",
-    "jsr:@quentinadam/require@~0.1.4": "0.1.4",
-    "jsr:@quentinadam/uint8array-extension@~0.1.5": "0.1.5",
-    "npm:typescript@^5.7.2": "5.7.2"
+    "jsr:@quentinadam/assert@~0.1.11": "0.1.11",
+    "jsr:@quentinadam/ensure@0.1": "0.1.0",
+    "jsr:@quentinadam/uint8array-extension@~0.1.6": "0.1.6",
+    "npm:typescript@^5.8.3": "5.8.3"
   },
   "jsr": {
-    "@quentinadam/assert@0.1.10": {
-      "integrity": "623eb01c4eb8bbe6420abcbc06792dbd5ca4301c270ac04b3745deac099f70df"
+    "@quentinadam/assert@0.1.11": {
+      "integrity": "d4cc1042fd15528474f9b796d3305a53bab256b325897e1f7b96274d9943aa36"
     },
-    "@quentinadam/require@0.1.4": {
-      "integrity": "ef2a475d3fc241817470e540bd892ac23520d620ffb23b7796c940df31391c72",
+    "@quentinadam/ensure@0.1.0": {
+      "integrity": "b918726cc826bfcc6d86aab055d890d881a7ad73c554f79a41c63701a49f771e",
       "dependencies": [
         "jsr:@quentinadam/assert"
       ]
     },
-    "@quentinadam/uint8array-extension@0.1.5": {
-      "integrity": "d7ccf8c8841947c7410c2db3249eb88a77bc1677b2a1c945971b8ead57e725b4",
+    "@quentinadam/uint8array-extension@0.1.6": {
+      "integrity": "4df194e81595723e3c7b28104083af006f75b5b8cacc9c3f032115e5559b9533",
       "dependencies": [
         "jsr:@quentinadam/assert"
       ]
     }
   },
   "npm": {
-    "typescript@5.7.2": {
-      "integrity": "sha512-i5t66RHxDvVN40HfDd1PsEThGNnlMCMT3jMUuoh9/0TaqWevNontacunWyN02LA9/fIbEWlcHZcgTKb9QoaLfg=="
+    "typescript@5.8.3": {
+      "integrity": "sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==",
+      "bin": true
     }
   },
   "workspace": {
     "dependencies": [
-      "jsr:@quentinadam/assert@~0.1.10",
-      "jsr:@quentinadam/require@~0.1.4",
-      "jsr:@quentinadam/uint8array-extension@~0.1.5",
-      "npm:typescript@^5.7.2"
+      "jsr:@quentinadam/assert@~0.1.11",
+      "jsr:@quentinadam/ensure@0.1",
+      "jsr:@quentinadam/uint8array-extension@~0.1.6",
+      "npm:typescript@^5.8.3"
     ]
   }
 }

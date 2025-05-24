@@ -14,7 +14,7 @@ function assert(value: boolean): asserts value {
   }
 }
 
-function require<T>(value: T | undefined | null): T {
+function ensure<T>(value: T | undefined | null): T {
   assert(value !== undefined && value !== null);
   return value;
 }
@@ -24,9 +24,9 @@ function parsePackageSpecifier(specifier: string) {
   const regex = /^(:?(?<registry>jsr|npm):\/?)?(?<name>(?:@[a-zA-Z0-9_\-]+\/)?[a-zA-Z0-9_\-]+)(?:@(?<version>(?:\*|(?:\^|~|[<>]=?)?\d+(?:\.\d+)*)))?(?<path>(\/[^\/]+)+)?$/;
   const match = specifier.match(regex);
   if (match !== null) {
-    const groups = require(match.groups);
+    const groups = ensure(match.groups);
     const registry = groups.registry;
-    const name = require(groups.name);
+    const name = ensure(groups.name);
     const version = groups.version;
     const path = groups.path;
     return { registry, name, version, path };
@@ -44,7 +44,7 @@ class GraphAnalyzer {
   }
 
   analyze(specifier: string) {
-    const module = require(this.#graph.modules.find((module) => module.specifier === specifier));
+    const module = ensure(this.#graph.modules.find((module) => module.specifier === specifier));
     if (module.kind === 'esm' && module.dependencies !== undefined) {
       for (const dependency of module.dependencies) {
         const parsedPackageSpecifier = parsePackageSpecifier(dependency.specifier);
@@ -59,7 +59,7 @@ class GraphAnalyzer {
 }
 
 export default async function getExportsDependencies() {
-  const exports = require(configurationFile.exports);
+  const exports = ensure(configurationFile.exports);
   const exportedPaths = (typeof exports === 'string') ? [exports] : Object.values(exports);
   const specifiers = new Set<string>();
   for (const path of exportedPaths) {
@@ -70,13 +70,13 @@ export default async function getExportsDependencies() {
     }
     const graph = JSON.parse(new TextDecoder().decode(stdout)) as Graph;
     const analyzer = new GraphAnalyzer(graph, specifiers);
-    analyzer.analyze(require(graph.roots[0]));
+    analyzer.analyze(ensure(graph.roots[0]));
   }
   if (specifiers.size > 0) {
     const imports = configurationFile.imports as Record<string, string> | undefined;
     assert(imports !== undefined);
     return Array.from(specifiers).toSorted().map((specifier) => {
-      const parsedPackageSpecifier = require(parsePackageSpecifier(require(imports[specifier])));
+      const parsedPackageSpecifier = ensure(parsePackageSpecifier(ensure(imports[specifier])));
       const { registry, name, version } = parsedPackageSpecifier;
       assert(registry !== undefined);
       assert(version !== undefined);
@@ -99,7 +99,7 @@ type ConfigurationFile = {
 
 const type = (() => {
   try {
-    return require(require(require(Deno.args[0]).match(/^--type=(jsr|npm)$/))[1]);
+    return ensure(ensure(ensure(Deno.args[0]).match(/^--type=(jsr|npm)$/))[1]);
   } catch {
     throw new Error('Missing or invalid type argument');
   }
@@ -112,10 +112,10 @@ const dependencies = await getExportsDependencies();
 const manifest = (() => {
   if (type === 'jsr') {
     return {
-      name: require(configurationFile.name),
-      version: require(configurationFile.version),
-      license: require(configurationFile.license),
-      exports: require(configurationFile.exports),
+      name: ensure(configurationFile.name),
+      version: ensure(configurationFile.version),
+      license: ensure(configurationFile.license),
+      exports: ensure(configurationFile.exports),
       publish: { include: ['src', 'README.md'], exclude: ['**/*.test.ts'] },
       imports: dependencies.length > 0
         ? Object.fromEntries(dependencies.map(({ name, registry, version }) => {
@@ -126,10 +126,10 @@ const manifest = (() => {
   }
   if (type === 'npm') {
     return {
-      name: require(configurationFile.name),
-      version: require(configurationFile.version),
-      description: require(configurationFile.description),
-      license: require(configurationFile.license),
+      name: ensure(configurationFile.name),
+      version: ensure(configurationFile.version),
+      description: ensure(configurationFile.description),
+      license: ensure(configurationFile.license),
       author: configurationFile.author,
       repository: configurationFile.repository,
       type: 'module',
@@ -140,7 +140,7 @@ const manifest = (() => {
         } else {
           return Object.fromEntries(Object.entries(exports).map(([key, value]) => [key, replaceFn(value)]));
         }
-      })(require(configurationFile.exports)),
+      })(ensure(configurationFile.exports)),
       files: ['dist', 'README.md'],
       dependencies: dependencies.length > 0
         ? Object.fromEntries(dependencies.map(({ name, version }) => [name, version]))
