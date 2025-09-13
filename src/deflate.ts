@@ -1,6 +1,9 @@
 import * as Uint8ArrayExtension from '@quentinadam/uint8array-extension';
 
-async function transform(stream: TransformStream<Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>>, data: Uint8Array<ArrayBuffer>) {
+async function transform(
+  stream: TransformStream<Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>>,
+  data: Uint8Array<ArrayBuffer>,
+) {
   const writer = stream.writable.getWriter();
   writer.write(data);
   writer.close();
