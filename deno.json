@@ -1,6 +1,6 @@
 {
   "name": "@quentinadam/zip",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A library for creating and extracting ZIP archives",
   "license": "MIT",
   "author": "Quentin Adam",
@@ -10,10 +10,10 @@
   },
   "exports": "./src/zip.ts",
   "imports": {
-    "@quentinadam/assert": "jsr:@quentinadam/assert@^0.1.11",
-    "@quentinadam/ensure": "jsr:@quentinadam/ensure@^0.1.0",
-    "@quentinadam/uint8array-extension": "jsr:@quentinadam/uint8array-extension@^0.1.6",
-    "typescript": "npm:typescript@^5.8.3"
+    "@quentinadam/assert": "jsr:@quentinadam/assert@^0.1.12",
+    "@quentinadam/ensure": "jsr:@quentinadam/ensure@^0.1.1",
+    "@quentinadam/uint8array-extension": "jsr:@quentinadam/uint8array-extension@^0.1.7",
+    "typescript": "npm:typescript@^5.9.2"
   },
   "fmt": {
     "singleQuote": true,

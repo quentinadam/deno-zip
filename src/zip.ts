@@ -18,8 +18,8 @@ type DirectoryEntry = {
   externalAttributes: number;
   offset: number;
   name: string;
-  extraField: Uint8Array;
-  comment: Uint8Array;
+  extraField: Uint8Array<ArrayBuffer>;
+  comment: Uint8Array<ArrayBuffer>;
 };
 
 type FileEntry = {
@@ -32,8 +32,8 @@ type FileEntry = {
   compressedSize: number;
   uncompressedSize: number;
   name: string;
-  extraField: Uint8Array;
-  data: Uint8Array;
+  extraField: Uint8Array<ArrayBuffer>;
+  data: Uint8Array<ArrayBuffer>;
 };
 
 type Directory = {
@@ -43,7 +43,7 @@ type Directory = {
   countRecords: number;
   size: number;
   offset: number;
-  comment: Uint8Array;
+  comment: Uint8Array<ArrayBuffer>;
 };
 
 const FILE_ENTRY_SIGNATURE = 0x04034b50;
@@ -54,7 +54,7 @@ class Reader {
   readonly #buffer;
   #offset;
 
-  constructor(buffer: Uint8Array, offset = 0) {
+  constructor(buffer: Uint8Array<ArrayBuffer>, offset = 0) {
     this.#buffer = buffer;
     this.#offset = offset;
   }
@@ -219,10 +219,10 @@ class Reader {
 }
 
 class Writer {
-  readonly #chunks = new Array<Uint8Array>();
+  readonly #chunks = new Array<Uint8Array<ArrayBuffer>>();
   #length = 0;
 
-  writeBuffer(buffer: Uint8Array) {
+  writeBuffer(buffer: Uint8Array<ArrayBuffer>) {
     this.#chunks.push(buffer);
     this.#length += buffer.length;
     return this;
@@ -329,12 +329,12 @@ function serializeLastModification(date: Date) {
 
 /**
  * Extracts files from a ZIP archive.
- * @param buffer An Uint8Array containing the ZIP archive.
+ * @param buffer An Uint8Array<ArrayBuffer> containing the ZIP archive.
  * @returns A list of files extracted from the ZIP archive.
  */
 export async function extract(
-  buffer: Uint8Array,
-): Promise<{ name: string; data: Uint8Array; lastModification: Date }[]> {
+  buffer: Uint8Array<ArrayBuffer>,
+): Promise<{ name: string; data: Uint8Array<ArrayBuffer>; lastModification: Date }[]> {
   const reader = new Reader(buffer);
   reader.locateDirectory();
   const directory = reader.readDirectory();
@@ -348,7 +348,7 @@ export async function extract(
     assert(directoryEntry.diskNumber === 0);
     directoryEntries.push(directoryEntry);
   }
-  const files = new Array<{ name: string; data: Uint8Array; lastModification: Date }>();
+  const files = new Array<{ name: string; data: Uint8Array<ArrayBuffer>; lastModification: Date }>();
   for (const directoryEntry of directoryEntries) {
     const fileEntry = reader.readFileEntry(directoryEntry);
     const data = await (async () => {
@@ -374,13 +374,13 @@ export async function extract(
 /**
  * Creates a ZIP archive from a list of files.
  * @param files List of files to include in the archive.
- * @returns An Uint8Array containing the ZIP archive.
+ * @returns An Uint8Array<ArrayBuffer> containing the ZIP archive.
  */
 export async function create(
-  files: { name: string; data: Uint8Array; lastModification?: Date }[],
-): Promise<Uint8Array> {
+  files: { name: string; data: Uint8Array<ArrayBuffer>; lastModification?: Date }[],
+): Promise<Uint8Array<ArrayBuffer>> {
   const writer = new Writer();
-  const entries = new Array<DirectoryEntry & { data: Uint8Array }>();
+  const entries = new Array<DirectoryEntry & { data: Uint8Array<ArrayBuffer> }>();
   for (const file of files) {
     const { data, compressed } = await (async () => {
       const compressedData = await compress(file.data, true);
