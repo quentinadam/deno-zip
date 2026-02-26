@@ -1,7 +1,5 @@
 name: CI
 on:
-  workflow_dispatch:
-  workflow_call:
   push:
     branches:
       - main
@@ -9,6 +7,9 @@ jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -35,16 +36,110 @@ jobs:
         run: deno publish --config=jsr.json --dry-run
       - name: Generate package.json
         run: deno run --allow-all scripts/generate-package-manifest.ts --type=npm | tee package.json
+      - name: Read package name + version from deno.json
+        id: package
+        run: |
+          NAME="$(jq -r '.name' deno.json)"
+          VERSION="$(jq -r '.version' deno.json)"
+          TAG="v${VERSION}"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Package: $NAME"
+          echo "Version: $VERSION"
+          echo "Tag: $TAG"
       - name: Install dependencies
         run: deno install
       - name: Build
         run: deno task --eval "tsc -b"
-      - name: Dry run publish to NPM (skip if already published)
+      - name: Check if package exists on NPM
+        id: npm_exists
+        env:
+          NAME: ${{ steps.package.outputs.name }}
+          VERSION: ${{ steps.package.outputs.version }}
         run: |
-          NAME=$(node -p "require('./package.json').name")
-          VERSION=$(node -p "require('./package.json').version")
-          if npm view "${NAME}@${VERSION}" version >/dev/null 2>&1; then
-            echo "Already published: ${NAME}@${VERSION} — skipping dry-run publish."
-            exit 0
+          URL="https://registry.npmjs.org/${NAME}/${VERSION}"
+          HTTP_STATUS="$(curl -s -o /dev/null -w "%{http_code}" "$URL")"
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "NPM: package ${NAME}@${VERSION} already exists."
+          elif [ "$HTTP_STATUS" = "404" ]; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "NPM: package ${NAME}@${VERSION} does not exist."
+          else
+            echo "Error: unexpected HTTP status $HTTP_STATUS when checking NPM for ${NAME}@${VERSION}"
+            exit 1
           fi
-          npm publish --dry-run
+      - name: Dry run publish to NPM
+        if: steps.npm_exists.outputs.exists != 'true'
+        run: npm publish --dry-run
+      - name: Check if GitHub release exists
+        id: release_exists
+        env:
+          TAG: ${{ steps.package.outputs.tag }}
+        run: |
+          URL="https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}"
+          HTTP_STATUS="$(curl -s -o /dev/null -w "%{http_code}" "$URL")"
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release $TAG already exists."
+          elif [ "$HTTP_STATUS" = "404" ]; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Release $TAG does not exist."
+          else
+            echo "Error: unexpected HTTP status $HTTP_STATUS when checking release $TAG"
+            exit 1
+          fi
+      - name: Create GitHub release
+        if: steps.release_exists.outputs.exists != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.package.outputs.tag }}
+        run: gh release create "$TAG" --target "${{ github.sha }}" --generate-notes
+      - name: Resolve tag commit (lightweight tags only)
+        id: tag_commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.package.outputs.tag }}"
+          URL="https://api.github.com/repos/${{ github.repository }}/git/ref/tags/${TAG}"
+          RESPONSE="$(curl -sS -w '\n%{http_code}' "$URL")"
+          HTTP_STATUS="${RESPONSE##*$'\n'}"
+          BODY="${RESPONSE%$'\n'*}"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Error: unexpected HTTP status $HTTP_STATUS when resolving tag $TAG"
+            exit 1
+          fi
+          OBJECT_TYPE="$(echo "$BODY" | jq -r '.object.type')"
+          TAG_COMMIT_SHA="$(echo "$BODY" | jq -r '.object.sha')"
+          if [ "$OBJECT_TYPE" != "commit" ]; then
+            echo "Error: tag $TAG is not a lightweight tag (expected commit, got $OBJECT_TYPE)"
+            exit 1
+          fi
+          echo "sha=$TAG_COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "Tag commit SHA:      $TAG_COMMIT_SHA"
+      - name: Check if package exists on JSR
+        id: jsr_exists
+        if: steps.tag_commit.outputs.sha == github.sha
+        env:
+          NAME: ${{ steps.package.outputs.name }}
+          VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          URL="https://jsr.io/${NAME}/${VERSION}_meta.json"
+          HTTP_STATUS="$(curl -s -o /dev/null -w "%{http_code}" "$URL")"
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "JSR: package ${NAME}@${VERSION} already exists."
+          elif [ "$HTTP_STATUS" = "404" ]; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "JSR: package ${NAME}@${VERSION} does not exist."
+          else
+            echo "Error: unexpected HTTP status $HTTP_STATUS when checking JSR for ${NAME}@${VERSION}"
+            exit 1
+          fi
+      - name: Publish to JSR
+        if: steps.tag_commit.outputs.sha == github.sha && steps.jsr_exists.outputs.exists != 'true'
+        run: deno publish --config=jsr.json
+      - name: Publish to NPM
+        if: steps.tag_commit.outputs.sha == github.sha && steps.npm_exists.outputs.exists != 'true'
+        run: npm publish --provenance --access public
