@@ -39,5 +39,12 @@ jobs:
         run: deno install
       - name: Build
         run: deno task --eval "tsc -b"
-      - name: Dry run publish to NPM
-        run: npm publish --dry-run
+      - name: Dry run publish to NPM (skip if already published)
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "${NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "Already published: ${NAME}@${VERSION} — skipping dry-run publish."
+            exit 0
+          fi
+          npm publish --dry-run
