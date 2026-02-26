@@ -23,7 +23,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
       - name: Generate package.json
         run: deno run --allow-all scripts/generate-package-manifest.ts --type=npm | tee package.json
