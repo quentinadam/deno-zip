@@ -10,9 +10,9 @@
   },
   "exports": "./src/zip.ts",
   "imports": {
-    "@quentinadam/assert": "jsr:@quentinadam/assert@^0.1.15",
-    "@quentinadam/ensure": "jsr:@quentinadam/ensure@^0.1.3",
-    "@quentinadam/uint8array-extension": "jsr:@quentinadam/uint8array-extension@^0.1.11",
+    "@quentinadam/assert": "jsr:@quentinadam/assert@^0.1.16",
+    "@quentinadam/ensure": "jsr:@quentinadam/ensure@^0.1.4",
+    "@quentinadam/uint8array-extension": "jsr:@quentinadam/uint8array-extension@^0.1.12",
     "typescript": "npm:typescript@^5.9.3"
   },
   "fmt": {
