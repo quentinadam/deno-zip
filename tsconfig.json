@@ -8,6 +8,8 @@
     "rewriteRelativeImportExtensions": true,
     "noUncheckedSideEffectImports": true,
     "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "outDir": "dist",
     "noEmitOnError": true,
     "esModuleInterop": true,
