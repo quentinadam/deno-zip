@@ -1,23 +1,23 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@quentinadam/assert@~0.1.13": "0.1.13",
-    "jsr:@quentinadam/ensure@~0.1.2": "0.1.2",
-    "jsr:@quentinadam/uint8array-extension@~0.1.10": "0.1.10",
+    "jsr:@quentinadam/assert@~0.1.15": "0.1.15",
+    "jsr:@quentinadam/ensure@~0.1.3": "0.1.3",
+    "jsr:@quentinadam/uint8array-extension@~0.1.11": "0.1.11",
     "npm:typescript@^5.9.3": "5.9.3"
   },
   "jsr": {
-    "@quentinadam/assert@0.1.13": {
-      "integrity": "6a0d7eedd549b6a5028264623990f3288c8d5de532b88a9971bf39743b84d059"
+    "@quentinadam/assert@0.1.15": {
+      "integrity": "806e910da9b72239b329fcb307f1d65bd2f912617704f13bf466e9debed8d99c"
     },
-    "@quentinadam/ensure@0.1.2": {
-      "integrity": "dc8428e4af6dd4ad18e71ac934bdf03c644d7379f56c30d4d7928be5675d9858",
+    "@quentinadam/ensure@0.1.3": {
+      "integrity": "da1a587457a4421399497fb6016dc942cd17ffeade963453923c65a751cd46f9",
       "dependencies": [
         "jsr:@quentinadam/assert"
       ]
     },
-    "@quentinadam/uint8array-extension@0.1.10": {
-      "integrity": "80fa973c3baf8a20a4ebe784ab6ea9b04e9ff66f98d7a4649f41a5defa89320f",
+    "@quentinadam/uint8array-extension@0.1.11": {
+      "integrity": "dadcc66e6360c3d19680125088a8538909c7194deb5aaa3fa4db5a0409132ea9",
       "dependencies": [
         "jsr:@quentinadam/assert"
       ]
@@ -31,9 +31,9 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@quentinadam/assert@~0.1.13",
-      "jsr:@quentinadam/ensure@~0.1.2",
-      "jsr:@quentinadam/uint8array-extension@~0.1.10",
+      "jsr:@quentinadam/assert@~0.1.15",
+      "jsr:@quentinadam/ensure@~0.1.3",
+      "jsr:@quentinadam/uint8array-extension@~0.1.11",
       "npm:typescript@^5.9.3"
     ]
   }
