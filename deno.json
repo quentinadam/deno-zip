@@ -12,7 +12,7 @@
   "imports": {
     "@quentinadam/assert": "jsr:@quentinadam/assert@^0.1.17",
     "@quentinadam/ensure": "jsr:@quentinadam/ensure@^0.1.5",
-    "@quentinadam/uint8array-extension": "jsr:@quentinadam/uint8array-extension@^0.1.13",
+    "@quentinadam/uint8array-extension": "jsr:@quentinadam/uint8array-extension@^0.1.14",
     "typescript": "npm:typescript@^5.9.3"
   },
   "fmt": {

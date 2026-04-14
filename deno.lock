@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@quentinadam/assert@~0.1.17": "0.1.17",
     "jsr:@quentinadam/ensure@~0.1.5": "0.1.5",
-    "jsr:@quentinadam/uint8array-extension@~0.1.13": "0.1.13",
+    "jsr:@quentinadam/uint8array-extension@~0.1.14": "0.1.14",
     "npm:typescript@^5.9.3": "5.9.3"
   },
   "jsr": {
@@ -16,8 +16,8 @@
         "jsr:@quentinadam/assert"
       ]
     },
-    "@quentinadam/uint8array-extension@0.1.13": {
-      "integrity": "7d8aec5028b42876b83496066b547902d9fa7929e87b7e0f74dc4ff2847ab280",
+    "@quentinadam/uint8array-extension@0.1.14": {
+      "integrity": "64a8a1eedb7fa2947343eb6384ecd7ab50d56afdc1567fb0c640789d0f592ca4",
       "dependencies": [
         "jsr:@quentinadam/assert"
       ]
@@ -33,7 +33,7 @@
     "dependencies": [
       "jsr:@quentinadam/assert@~0.1.17",
       "jsr:@quentinadam/ensure@~0.1.5",
-      "jsr:@quentinadam/uint8array-extension@~0.1.13",
+      "jsr:@quentinadam/uint8array-extension@~0.1.14",
       "npm:typescript@^5.9.3"
     ]
   }
