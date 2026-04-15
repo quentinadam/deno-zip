@@ -1,4 +1,4 @@
-import assert from '@quentinadam/assert';
+import { assert } from '@quentinadam/assert';
 import {
   concat,
   equals,
@@ -7,7 +7,7 @@ import {
   getUint16LE,
   getUint32LE,
 } from '@quentinadam/uint8array-extension';
-import crc32 from './crc32.ts';
+import { crc32 } from './crc32.ts';
 import { compress, decompress } from './deflate.ts';
 
 type DirectoryEntry = {

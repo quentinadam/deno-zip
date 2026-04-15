@@ -1,4 +1,4 @@
-import ensure from '@quentinadam/ensure';
+import { ensure } from '@quentinadam/ensure';
 
 const POLYNOMIAL = -306674912;
 
@@ -14,7 +14,7 @@ const TABLE = /* @__PURE__ */ (() => {
   return table;
 })();
 
-export default function crc32(buffer: Uint8Array<ArrayBuffer>, crc = 0xFFFFFFFF) {
+export function crc32(buffer: Uint8Array<ArrayBuffer>, crc = 0xFFFFFFFF) {
   for (const byte of buffer) {
     crc = ensure(TABLE[(crc ^ byte) & 0xff]) ^ (crc >>> 8);
   }
