@@ -1,5 +1,12 @@
 import assert from '@quentinadam/assert';
-import Uint8ArrayExtension from '@quentinadam/uint8array-extension';
+import {
+  concat,
+  equals,
+  fromUint16LE,
+  fromUint32LE,
+  getUint16LE,
+  getUint32LE,
+} from '@quentinadam/uint8array-extension';
 import crc32 from './crc32.ts';
 import { compress, decompress } from './deflate.ts';
 
@@ -70,28 +77,19 @@ class Reader {
   }
 
   readUint16LE() {
-    return this.#read(
-      () => new Uint8ArrayExtension(this.#buffer).getUint16LE(this.#offset),
-      2,
-    );
+    return this.#read(() => getUint16LE(this.#buffer, this.#offset), 2);
   }
 
   readUint32LE() {
-    return this.#read(
-      () => new Uint8ArrayExtension(this.#buffer).getUint32LE(this.#offset),
-      4,
-    );
+    return this.#read(() => getUint32LE(this.#buffer, this.#offset), 4);
   }
 
   readBuffer(length: number) {
-    return this.#read(
-      () => this.#buffer.slice(this.#offset, this.#offset + length),
-      length,
-    );
+    return this.#read(() => this.#buffer.slice(this.#offset, this.#offset + length), length);
   }
 
   locateDirectory() {
-    const needle = Uint8ArrayExtension.fromUint32LE(DIRECTORY_SIGNATURE);
+    const needle = fromUint32LE(DIRECTORY_SIGNATURE);
     for (let i = this.#buffer.length - needle.length; i >= 0; i--) {
       const result = (() => {
         for (let j = 0; j < needle.length; j++) {
@@ -200,7 +198,7 @@ class Reader {
     const name = new TextDecoder().decode(this.readBuffer(nameLength));
     assert(name === directoryEntry.name);
     const extraField = this.readBuffer(extraFieldLength);
-    assert(new Uint8ArrayExtension(extraField).equals(directoryEntry.extraField));
+    assert(equals(extraField, directoryEntry.extraField));
     const data = this.readBuffer(compressedSize);
     return {
       requiredVersion,
@@ -229,11 +227,11 @@ class Writer {
   }
 
   writeUint16LE(value: number) {
-    return this.writeBuffer(Uint8ArrayExtension.fromUint16LE(value));
+    return this.writeBuffer(fromUint16LE(value));
   }
 
   writeUint32LE(value: number) {
-    return this.writeBuffer(Uint8ArrayExtension.fromUint32LE(value));
+    return this.writeBuffer(fromUint32LE(value));
   }
 
   get length() {
@@ -297,7 +295,7 @@ class Writer {
   }
 
   serialize() {
-    return Uint8ArrayExtension.concat(this.#chunks);
+    return concat(this.#chunks);
   }
 }
 
