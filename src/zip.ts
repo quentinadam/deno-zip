@@ -1,12 +1,5 @@
 import { assert } from '@quentinadam/assert';
-import {
-  concat,
-  equals,
-  fromUint16LE,
-  fromUint32LE,
-  getUint16LE,
-  getUint32LE,
-} from '@quentinadam/uint8array-extension';
+import { concat, fromUint16LE, fromUint32LE, getUint16LE, getUint32LE } from '@quentinadam/uint8array-extension';
 import { crc32 } from './crc32.ts';
 import { compress, decompress } from './deflate.ts';
 
@@ -56,6 +49,7 @@ type Directory = {
 const FILE_ENTRY_SIGNATURE = 0x04034b50;
 const DIRECTORY_ENTRY_SIGNATURE = 0x02014b50;
 const DIRECTORY_SIGNATURE = 0x06054b50;
+const UTF8_NAME_FLAG = 0x800;
 
 class Reader {
   readonly #buffer;
@@ -197,8 +191,8 @@ class Reader {
     const extraFieldLength = this.readUint16LE();
     const name = new TextDecoder().decode(this.readBuffer(nameLength));
     assert(name === directoryEntry.name);
+    // Local and central extra fields are independent; Info-ZIP, for example, stores more timestamps locally.
     const extraField = this.readBuffer(extraFieldLength);
-    assert(equals(extraField, directoryEntry.extraField));
     const data = this.readBuffer(compressedSize);
     return {
       requiredVersion,
@@ -394,7 +388,7 @@ export async function create(
     const entry = {
       version: 45,
       requiredVersion: 20,
-      flag: 6,
+      flag: 6 | UTF8_NAME_FLAG,
       compressionMethod: compressed ? 8 : 0,
       lastModificationTime,
       lastModificationDate,
